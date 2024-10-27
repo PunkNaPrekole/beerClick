@@ -24,8 +24,8 @@ const achievements = [
     { id: 1, name: "Общажный геймдев", description: "Начните писать игру про пиво", condition: () => beercoins >= 123, reward: 1, unlocked: false },
 ];
 const purchasedSkins = {
-    backgrounds: [],
-    cans: []
+    backgrounds: ['default'],
+    cans: ['defaultCan']
 };
 
 const game = new Phaser.Game(config);
@@ -104,20 +104,24 @@ function create() {
         font: '16px Pangolin',
         fill: '#FFF'
     });
-    this.levelUpButtonBackground = this.add.graphics();
-    this.levelUpButtonBackground.fillStyle(0xFFC700, 1);  // Цвет фона кнопки
-    this.levelUpButtonBackground.fillRoundedRect(295, 60, 85, 30, 8);  // Позиция, размеры и радиус скругления
-    this.levelUpButtonBackground.lineStyle(2, 0xFFAA5C);  // Цвет и толщина обводки
-    this.levelUpButtonBackground.strokeRoundedRect(295, 60, 85, 30, 8);  // Применение обводки
+    this.levelUpButtonSprite = this.add.sprite(330, 80, 'boostButton') 
+        .setOrigin(0.5)
+        .setInteractive()
+        .on('pointerdown', () => levelUp.call(this));
 
-    this.levelUpButton = this.add.text(305, 66, 'Level up', {
+    this.levelUpButtonSprite.displayWidth = 85;
+    this.levelUpButtonSprite.displayHeight = 30;
+    this.levelUpButtonText = this.add.text(330, 80, nextLevelCost, {
         font: '16px Pangolin',
         fill: '#000',
         align: 'center'
-    }).setInteractive()
-    .on('pointerdown', () => levelUp.call(this));
+    }).setOrigin(0.5)
+      .setInteractive()
+      .on('pointerdown', () => levelUp.call(this));
 
-    this.levelUpButton.setDepth(1);
+    this.levelUpButtonContainer = this.add.container(0, 0);
+    this.levelUpButtonContainer.add([this.levelUpButtonSprite, this.levelUpButtonText]);
+    this.levelUpButtonText.setDepth(1);
 
 
     this.progressBarBase = this.add.graphics();
@@ -203,6 +207,7 @@ function levelUp() {
         createParticle.call(this, 175, 125, "no coins");
     }
     this.beercoinsCountText.setText(`Beercoins: ${beercoins}`);
+    this.levelUpButtonText.setText(nextLevelCost);
     checkAchievements.call(this);
 }
 
@@ -218,8 +223,7 @@ function hideMainUI() {
     this.nextLevelText.visible = false;
     this.multiplierText.visible = false;
     this.can.visible = false;
-    this.levelUpButton.visible = false;
-    this.levelUpButtonBackground.visible = false;
+    this.levelUpButtonContainer.visible = false;
 }
 
 function showMainUI() {
@@ -234,8 +238,7 @@ function showMainUI() {
     this.nextLevelText.visible = true;
     this.multiplierText.visible = true;
     this.can.visible = true;
-    this.levelUpButton.visible = true;
-    this.levelUpButtonBackground.visible = true;
+    this.levelUpButtonContainer.visible = true;
 
 }
 
@@ -261,12 +264,14 @@ function openShop() {
             .setScale(0.03)
             .setInteractive()
             .on('pointerdown', () => purchaseSkin.call(this, 'backgrounds', background.id));
-
-        const priceText = this.add.text(50, buttonY + 55, `${background.price}`, { fontSize: '14px', fill: '#FFFFFF' })
-            .setOrigin(0.5);
-
         shopContainer.add(buttonSprite);
-        shopContainer.add(priceText);
+        if (!isPurchased) {
+                    const priceText = this.add.text(50, buttonY + 55, `${background.price}`, { fontSize: '14px', fill: '#FFFFFF' })
+                        .setOrigin(0.5);
+                    shopContainer.add(priceText);
+                }
+
+
     });
 
 
@@ -281,12 +286,14 @@ function openShop() {
             .setScale(0.03)
             .setInteractive()
             .on('pointerdown', () => purchaseSkin.call(this, 'cans', can.id));
-
-        const priceText = this.add.text(250, buttonY + 55, `${can.price}`, { fontSize: '14px', fill: '#FFFFFF' })
-            .setOrigin(0.5);
-
         shopContainer.add(buttonSprite);
-        shopContainer.add(priceText);
+        if (!isPurchased) {
+                    const priceText = this.add.text(250, buttonY + 55, `${can.price}`, { fontSize: '14px', fill: '#FFFFFF' })
+                        .setOrigin(0.5);
+                    shopContainer.add(priceText);
+                }
+
+
     });
 }
 
@@ -304,6 +311,8 @@ function purchaseSkin(type, skinId) {
     }
     if (purchasedSkins[type].includes(skinId)) {
             applySkin.call(this, type, skinId);
+            showMainUI.call(this);
+            if (shopContainer) shopContainer.destroy(true);
             return;
         }
 
