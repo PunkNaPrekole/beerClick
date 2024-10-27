@@ -22,7 +22,6 @@ const achievements = [
     { id: 2, name: "100 Beercoins", description: "Накопите 100 Beercoins", condition: () => beercoins >= 100, reward: 50, unlocked: false },
     { id: 2, name: "x2 множитель", description: "получите множитель x2", condition: () => multiplier >= 2, reward: 50, unlocked: false },
     { id: 1, name: "Общажный геймдев", description: "Начните писать игру про пиво", condition: () => beercoins >= 123, reward: 1, unlocked: false },
-    // другие ачивки...
 ];
 const purchasedSkins = {
     backgrounds: [],
@@ -44,7 +43,6 @@ let capsContainer;
 let currentBackgroundSkin = 'default';
 let currentCanSkin = 'defaultCan';
 
-// Скины
 const skins = {
     backgrounds: [
         { id: 'default', image: 'stairs.png', price: 0 },
@@ -64,7 +62,6 @@ const collectibleCaps = [
     { id: 1, image: 'redCap.png', name: 'Rare Cap', rarity: 'rare' },
     { id: 2, image: 'blueCap.png', name: 'Epic Cap', rarity: 'epic' },
     { id: 3, image: 'greenCap.png', name: 'Legendary Cap', rarity: 'legendary' },
-    // Добавьте другие крышки
 ];
 const collectedCaps = {};
 
@@ -75,8 +72,10 @@ function preload() {
     this.load.audio('menuSound', 'menu-sound.mp3');
     this.load.audio('capSound', 'capSound.mp3');
     this.load.audio('lvlUpSound', 'lvlUp.mp3');
+    this.load.image('boostButton', 'button.png');
+    this.load.image('can', 'beer.png');
+    this.load.image('background', 'background.png');
 
-    // Загрузка всех скинов
     skins.backgrounds.concat(skins.cans).forEach((skin) => {
         this.load.image(skin.id, skin.image);
     });
@@ -87,7 +86,6 @@ function preload() {
 }
 
 function create() {
-    // Фон
     this.background = this.add.image(200, 400, currentBackgroundSkin).setOrigin(0.5, 0.5).setDisplaySize(400, 600);
     this.background.setScale(0.15);
 
@@ -96,13 +94,11 @@ function create() {
     this.capSound = this.sound.add('capSound');
     this.lvlUpSound = this.sound.add('lvlUpSound');
 
-    // Блоки информации;
     this.perTapText = this.add.text(10, 20, `Прибыль за тап:\n${beercoinsPerTap}`, { font: '16px Pangolin', fill: '#FFF', align: 'center'
     });
     this.nextLevelCostText = this.add.text(150, 20, `Монет для апа:\n${nextLevelCost}`, { font: '16px Pangolin', fill: '#FFF', align: 'center' });
     this.dailyBeercoinsText = this.add.text(280, 20, `Монет за день:\n${dailyBeercoins}`, { font: '16px Pangolin', fill: '#FFF', align: 'center' });
 
-    // Иконка beercoin
     this.beercoinIcon = this.add.image(30, 70, 'beercoinIcon').setOrigin(0.5, 0.5).setDisplaySize(35, 35);
     this.beercoinsCountText = this.add.text(70, 65, `Beercoins: ${beercoins}`, {
         font: '16px Pangolin',
@@ -114,7 +110,6 @@ function create() {
     this.levelUpButtonBackground.lineStyle(2, 0xFFAA5C);  // Цвет и толщина обводки
     this.levelUpButtonBackground.strokeRoundedRect(295, 60, 85, 30, 8);  // Применение обводки
 
-    // Текст кнопки поверх фона
     this.levelUpButton = this.add.text(305, 66, 'Level up', {
         font: '16px Pangolin',
         fill: '#000',
@@ -122,11 +117,9 @@ function create() {
     }).setInteractive()
     .on('pointerdown', () => levelUp.call(this));
 
-    // Убедимся, что текст всегда поверх фона
     this.levelUpButton.setDepth(1);
 
 
-    // Прогресс-бар
     this.progressBarBase = this.add.graphics();
     this.progressBar = this.add.graphics();
     this.progressBarBase.fillStyle(0xFFFFFF, 0.5);
@@ -138,7 +131,6 @@ function create() {
     this.multiplierText = this.add.text(10, 670, `Множитель: x${multiplier}`, { font: '18px Pangolin', fill: '#000' });
     this.time.addEvent({ delay: 1000, callback: checkMultiplierIncrease, callbackScope: this, loop: true });
 
-    // Банка
     this.can = this.add.sprite(200, 400, currentCanSkin).setInteractive();
     this.can.setScale(0.15);
     this.can.on('pointerdown', (pointer) => {
@@ -255,65 +247,50 @@ function openShop() {
     const shopBackground = this.add.graphics();
     shopBackground.fillStyle(0x000000, 0.7);
     shopBackground.fillRect(0, 0, 400, 600);
-
     shopContainer.add(shopBackground);
-    shopContainer.add(this.add.text(10, 150, 'Скины фона:', { fontSize: '16px', fill: '#FFFFFF' }));
 
-    // Кнопки для смены скинов фона с границами
+
+
     skins.backgrounds.forEach((background, index) => {
-        const buttonY = 180 + index * 50;
+        const buttonY = 180 + index * 120;
+        const isPurchased = purchasedSkins.backgrounds.includes(background.id);
+        const spriteKey = isPurchased ? background.id : 'background';
 
-        // Создание фона кнопки
-        const buttonBackground = this.add.graphics();
-        buttonBackground.fillStyle(0xAAAAAA, 1);
-        buttonBackground.fillRoundedRect(10, buttonY, 180, 40, 10);
+        const buttonSprite = this.add.image(50, buttonY, spriteKey)
+            .setOrigin(0.5)
+            .setScale(0.03)
+            .setInteractive()
+            .on('pointerdown', () => purchaseSkin.call(this, 'backgrounds', background.id));
 
-        // Создание текста кнопки
-        const backgroundText = this.add.text(20, buttonY + 10, `${background.id} - Цена: ${background.price}`,
-                                             { fontSize: '14px', fill: '#000' });
+        const priceText = this.add.text(50, buttonY + 55, `${background.price}`, { fontSize: '14px', fill: '#FFFFFF' })
+            .setOrigin(0.5);
 
-        // Группируем фон и текст кнопки в контейнер
-        const buttonContainer = this.add.container(0, 0, [buttonBackground, backgroundText]);
-        buttonContainer.setSize(180, 40);
-        buttonContainer.setInteractive(new Phaser.Geom.Rectangle(10, buttonY, 180, 40), Phaser.Geom.Rectangle.Contains);
-
-        // Событие при нажатии на кнопку
-        buttonContainer.on('pointerdown', () => purchaseSkin.call(this, 'backgrounds', background.id));
-
-        // Добавляем кнопку в контейнер магазина
-        shopContainer.add(buttonContainer);
+        shopContainer.add(buttonSprite);
+        shopContainer.add(priceText);
     });
 
-    shopContainer.add(this.add.text(200, 150, 'Скины банки:', { fontSize: '16px', fill: '#FFFFFF' }));
+
 
     skins.cans.forEach((can, index) => {
-        const buttonY = 180 + index * 50;
+        const buttonY = 180 + index * 120;
+        const isPurchased = purchasedSkins.cans.includes(can.id);
+        const spriteKey = isPurchased ? can.id : 'can';
 
-        // Создание фона кнопки
-        const buttonBackground = this.add.graphics();
-        buttonBackground.fillStyle(0xAAAAAA, 1);
-        buttonBackground.fillRoundedRect(200, buttonY, 180, 40, 10);
+        const buttonSprite = this.add.image(250, buttonY, spriteKey)
+            .setOrigin(0.5)
+            .setScale(0.03)
+            .setInteractive()
+            .on('pointerdown', () => purchaseSkin.call(this, 'cans', can.id));
 
-        // Создание текста кнопки
-        const canText = this.add.text(210, buttonY + 10, `${can.id} - Цена: ${can.price}`,
-                                      { fontSize: '14px', fill: '#000' });
+        const priceText = this.add.text(250, buttonY + 55, `${can.price}`, { fontSize: '14px', fill: '#FFFFFF' })
+            .setOrigin(0.5);
 
-        // Группируем фон и текст кнопки в контейнер
-        const buttonContainer = this.add.container(0, 0, [buttonBackground, canText]);
-        buttonContainer.setSize(180, 40);
-        buttonContainer.setInteractive(new Phaser.Geom.Rectangle(200, buttonY, 180, 40), Phaser.Geom.Rectangle.Contains);
-
-        // Событие при нажатии на кнопку
-        buttonContainer.on('pointerdown', () => purchaseSkin.call(this, 'cans', can.id));
-
-        // Добавляем кнопку в контейнер магазина
-        shopContainer.add(buttonContainer);
+        shopContainer.add(buttonSprite);
+        shopContainer.add(priceText);
     });
 }
 
-
 function purchaseSkin(type, skinId) {
-    // Проверяем, что type - это либо 'background', либо 'can'
     if (!skins[type]) {
         console.error(`Invalid type: ${type}`);
         return;
@@ -326,8 +303,7 @@ function purchaseSkin(type, skinId) {
         return;
     }
     if (purchasedSkins[type].includes(skinId)) {
-            console.log('Скин уже куплен!');
-            applySkin.call(this, type, skinId); // Применяем, если уже куплен
+            applySkin.call(this, type, skinId);
             return;
         }
 
@@ -335,7 +311,9 @@ function purchaseSkin(type, skinId) {
         beercoins -= selectedSkin.price;
         this.beercoinsCountText.setText(`Beercoins: ${beercoins}`);
         purchasedSkins[type].push(skinId);
+        openShop.call(this)
         applySkin(type, skinId);
+        navigateToSection.call(this, 'Кликер')
     } else {
         console.log('Недостаточно средств!');
         createParticle.call(this, 175, 125, "no coins");
@@ -355,38 +333,31 @@ function applySkin(type, skinId) {
 function createBottomMenu() {
     const menuY = 700;
 
-    // Создаем фон меню
+
     const menuBackground = this.add.graphics();
     menuBackground.fillStyle(0x333333, 1);
     menuBackground.fillRect(0, menuY, 400, 100);
 
-    // Опции меню
-    const menuOptions = ['Кликер', 'Магазин', 'Крышки', 'Буст'];
-    menuOptions.forEach((option, index) => {
+
+    const menuOptions = [
+        { option: 'Кликер', image: 'boostButton' },
+        { option: 'Магазин', image: 'boostButton' },
+        { option: 'Крышки', image: 'boostButton' },
+        { option: 'Буст', image: 'boostButton' }
+    ];
+
+    menuOptions.forEach((item, index) => {
         const buttonX = 10 + index * 100;
 
-        // Создаем фон кнопки
-        const buttonBackground = this.add.graphics();
-        buttonBackground.fillStyle(0x555555, 1); // Цвет кнопки
-        buttonBackground.fillRoundedRect(buttonX, menuY + 25, 80, 50, 10); // Позиция, ширина, высота, радиус скругления
+        const buttonSprite = this.add.image(buttonX + 40, menuY + 50, item.image)
+            .setOrigin(0.5, 0.5)
+            .setInteractive()
+            .on('pointerdown', () => navigateToSection.call(this, item.option));
 
-        // Создаем текст
-        const menuButtonText = this.add.text(buttonX + 40, menuY + 50, option, { fontSize: '16px', fill: '#FFFFFF' })
-            .setOrigin(0.5, 0.5);
-
-        // Делаем кликабельным именно фоновую кнопку
-        const buttonArea = this.add.rectangle(buttonX + 40, menuY + 50, 80, 50, 0xffffff, 0); // Прямоугольник для интерактивности
-        buttonArea.setInteractive()
-            .on('pointerdown', () => navigateToSection.call(this, option));
-
-        // Помещаем графику на тот же уровень, что и текст
-        buttonBackground.setDepth(0);
-        menuButtonText.setDepth(1);
+        buttonSprite.setDisplaySize(80, 50);
     });
 }
 
-
-// Обработчик переключения разделов
 function navigateToSection(section) {
     this.menuSound.play();
     if (section === 'Кликер') {
@@ -400,7 +371,6 @@ function navigateToSection(section) {
         if (shopContainer) shopContainer.destroy(true);
         openCapsCollection.call(this);
     } else if (section === 'Буст') {
-        // Здесь добавим функционал для "Донат" позже
         console.log('Донат еще не реализован');
     }
 }
@@ -420,11 +390,9 @@ function createParticle(x, y, value) {
                     fill: color,
                     fontStyle: 'bold'
                 });
-    // Задаем случайные направления движения частиц
     const velocityX = Phaser.Math.Between(-50, 50);
     const velocityY = Phaser.Math.Between(-100, -50);
 
-    // Анимация частиц
     this.tweens.add({
         targets: particle,
         x: particle.x + velocityX,
@@ -432,7 +400,7 @@ function createParticle(x, y, value) {
         alpha: 0,
         duration: 1000,
         ease: 'Quad.easeOut',
-        onComplete: () => particle.destroy() 
+        onComplete: () => particle.destroy()
     });
 }
 
