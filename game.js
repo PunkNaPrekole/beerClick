@@ -24,6 +24,10 @@ const achievements = [
     { id: 1, name: "Общажный геймдев", description: "Начните писать игру про пиво", condition: () => beercoins >= 123, reward: 1, unlocked: false },
     // другие ачивки...
 ];
+const purchasedSkins = {
+    backgrounds: [],
+    cans: []
+};
 
 const game = new Phaser.Game(config);
 
@@ -36,6 +40,7 @@ let multiplier = 1;
 let lastTapTime = Date.now();
 let totalTapTime = 0;
 let shopContainer;
+let capsContainer;
 let currentBackgroundSkin = 'default';
 let currentCanSkin = 'defaultCan';
 
@@ -61,6 +66,7 @@ const collectibleCaps = [
     { id: 3, image: 'greenCap.png', name: 'Legendary Cap', rarity: 'legendary' },
     // Добавьте другие крышки
 ];
+const collectedCaps = {};
 
 
 function preload() {
@@ -136,10 +142,12 @@ function create() {
     this.can = this.add.sprite(200, 400, currentCanSkin).setInteractive();
     this.can.setScale(0.15);
     this.can.on('pointerdown', (pointer) => {
-        // Получаем локальные координаты нажатия относительно спрайта
+        this.can.scaleY = 0.145;
+        this.can.scaleX = 0.155;
+        this.time.delayedCall(50, () => {
+                this.can.setScale(0.15);
+            });
         const localPoint = this.can.getLocalPoint(pointer.x, pointer.y);
-
-        // Вызываем функцию collectBeercoin с координатами нажатия
         collectBeercoin.call(this, localPoint.x, localPoint.y);
         tryDropCollectibleCap.call(this);
         this.clickSound.play();
@@ -157,6 +165,7 @@ function updateProgressBar() {
 }
 
 function collectBeercoin(x, y) {
+
     const currentTime = Date.now();
     if (currentTime - lastTapTime > 3000) {
         totalTapTime = 0;
@@ -316,23 +325,33 @@ function purchaseSkin(type, skinId) {
         console.error(`Skin with ID ${skinId} not found for type ${type}`);
         return;
     }
+    if (purchasedSkins[type].includes(skinId)) {
+            console.log('Скин уже куплен!');
+            applySkin.call(this, type, skinId); // Применяем, если уже куплен
+            return;
+        }
 
     if (beercoins >= selectedSkin.price) {
         beercoins -= selectedSkin.price;
         this.beercoinsCountText.setText(`Beercoins: ${beercoins}`);
-
-        // Обновляем скин
-        if (type === 'backgrounds') {
-            this.background.setTexture(skinId);
-            currentBackgroundSkin = skinId
-        } else if (type === 'cans') {
-            this.can.setTexture(skinId);
-            currentCanSkin = skinId
-        }
+        purchasedSkins[type].push(skinId);
+        applySkin(type, skinId);
     } else {
         console.log('Недостаточно средств!');
+        createParticle.call(this, 175, 125, "no coins");
     }
 }
+
+function applySkin(type, skinId) {
+    if (type === 'backgrounds') {
+        this.background.setTexture(skinId);
+        currentBackgroundSkin = skinId;
+    } else if (type === 'cans') {
+        this.can.setTexture(skinId);
+        currentCanSkin = skinId;
+    }
+}
+
 function createBottomMenu() {
     const menuY = 700;
 
@@ -372,12 +391,14 @@ function navigateToSection(section) {
     this.menuSound.play();
     if (section === 'Кликер') {
         showMainUI.call(this);
-        if (shopContainer) shopContainer.destroy(true); // Закрываем магазин
+        if (shopContainer) shopContainer.destroy(true);
+        if (capsContainer) capsContainer.destroy(true);
     } else if (section === 'Магазин') {
+        if (capsContainer) capsContainer.destroy(true);
         openShop.call(this);
     } else if (section === 'Крышки') {
-        // Здесь добавим функционал для "Коллекции" позже
-        console.log('Коллекции еще не реализованы');
+        if (shopContainer) shopContainer.destroy(true);
+        openCapsCollection.call(this);
     } else if (section === 'Буст') {
         // Здесь добавим функционал для "Донат" позже
         console.log('Донат еще не реализован');
@@ -411,7 +432,7 @@ function createParticle(x, y, value) {
         alpha: 0,
         duration: 1000,
         ease: 'Quad.easeOut',
-        onComplete: () => particle.destroy() // Удаляем частицу после анимации
+        onComplete: () => particle.destroy() 
     });
 }
 
@@ -423,54 +444,52 @@ function checkAchievements() {
     });
 }
 
-// Функция разблокировки ачивки
+
 function unlockAchievement(achievement) {
     achievement.unlocked = true;
-    beercoins += achievement.reward; // Награда
+    beercoins += achievement.reward;
     this.beercoinsCountText.setText(`Beercoins: ${beercoins}`);
-    showAchievementPopup.call(this, achievement.name, achievement.reward); // Уведомление
-    //saveAchievements(); // Сохранение прогресса
+    showAchievementPopup.call(this, achievement.name, achievement.reward);
 }
 
 function showAchievementPopup(name, reward) {
-    // Создаем графику для фона уведомления
     const popupBackground = this.add.graphics();
-    popupBackground.fillStyle(0x333333, 0.8); // Цвет фона и его прозрачность
-    const width = 250; // Ширина фона
-    const height = 60; // Высота фона
-    popupBackground.fillRoundedRect(0, 0, width, height, 10); // Прямоугольник с закругленными углами
+    popupBackground.fillStyle(0x333333, 0.8);
+    const width = 250;
+    const height = 60;
+    popupBackground.fillRoundedRect(0, 0, width, height, 10);
 
-    // Устанавливаем позицию фона в правом нижнем углу
-    const padding = 20; // Отступ от края экрана
-    const xPos = this.cameras.main.width - width - padding; // Позиция по оси X
-    const yPos = this.cameras.main.height - height - padding - 100; // Позиция по оси Y
-    popupBackground.setPosition(xPos, yPos); // Устанавливаем позицию фона
 
-    // Создаем текст уведомления
+    const padding = 20;
+    const xPos = this.cameras.main.width - width - padding;
+    const yPos = this.cameras.main.height - height - padding - 100;
+    popupBackground.setPosition(xPos, yPos);
+
+
     const popupText = this.add.text(xPos + 10, yPos + 10, `Достижение: ${name}\nНаграда: ${reward} Beercoins`, {
         fontSize: '16px',
         fill: '#FFFFFF',
         wordWrap: { width: width - 20 }
     });
 
-    // Анимация появления
-    popupBackground.alpha = 0; // Начальная прозрачность
-    popupText.alpha = 0; // Начальная прозрачность
+
+    popupBackground.alpha = 0;
+    popupText.alpha = 0;
 
     this.tweens.add({
         targets: [popupBackground, popupText],
         alpha: 1,
-        duration: 300, // Длительность появления
+        duration: 300,
         onComplete: () => {
-            // Анимация исчезновения
+
             this.tweens.add({
                 targets: [popupBackground, popupText],
                 alpha: 0,
-                duration: 300, // Длительность исчезновения
-                delay: 2000, // Задержка перед исчезновением
+                duration: 300,
+                delay: 2000,
                 onComplete: () => {
-                    popupBackground.destroy(); // Удаляем фон
-                    popupText.destroy(); // Удаляем текст
+                    popupBackground.destroy();
+                    popupText.destroy();
                 }
             });
         }
@@ -478,10 +497,14 @@ function showAchievementPopup(name, reward) {
 }
 
 function tryDropCollectibleCap() {
-    // Вероятность выпадения (например, один шанс из 3000 кликов)
+
     const dropChance = 1 / 5;
     if (Math.random() < dropChance) {
         const randomCap = Phaser.Utils.Array.GetRandom(collectibleCaps);
+        if (!collectedCaps[randomCap.id]) {
+                    collectedCaps[randomCap.id] = 0;
+                }
+                collectedCaps[randomCap.id]++;
         showCollectibleCapPopup.call(this, randomCap);
     }
 }
@@ -490,7 +513,7 @@ function showCollectibleCapPopup(cap) {
     const capImage = this.add.image(200, 300, cap.image).setScale(0.1);
     this.capSound.play();
 
-    // Анимация для плавного исчезновения
+
     this.tweens.add({
         targets: capImage,
         alpha: 0,
@@ -502,3 +525,47 @@ function showCollectibleCapPopup(cap) {
     });
 }
 
+function openCapsCollection() {
+    hideMainUI.call(this);
+    if (capsContainer) capsContainer.destroy(true);
+    capsContainer = this.add.container(0, 0);
+
+    const collectionBackground = this.add.graphics();
+    collectionBackground.fillStyle(0x000000, 0.7);
+    collectionBackground.fillRect(0, 0, 400, 600);
+
+
+    capsContainer.add(collectionBackground);
+    capsContainer.add(this.add.text(200, 50, 'Коллекция крышек', { fontSize: '24px', fill: '#FFFFFF' }).setOrigin(0.5));
+
+
+    const cols = 5;
+    const rowHeight = 70;
+    const colWidth = 70;
+
+    let currentRow = 0;
+    let currentCol = 0;
+
+
+    Object.keys(collectedCaps).forEach((capId) => {
+        const cap = collectibleCaps.find(c => c.id == capId);
+        const capCount = collectedCaps[capId];
+
+
+        if (cap && capCount > 0) {
+            for (let i = 0; i < capCount; i++) {
+
+                const capSprite = this.add.image(60 + currentCol * colWidth, 100 + currentRow * rowHeight, cap.image)
+                    .setOrigin(0.5)
+                    .setScale(0.1);
+                currentCol++;
+                capsContainer.add(capSprite);
+                if (currentCol >= cols) {
+                    currentCol = 0;
+                    currentRow++;
+                }
+            }
+        }
+    });
+
+}
