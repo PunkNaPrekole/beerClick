@@ -99,8 +99,7 @@ function create() {
 
     this.perTapText = this.add.text(10, 20, `Прибыль за тап:\n${beercoinsPerTap}`, { font: '16px Pangolin', fill: '#FFF', align: 'center'
     });
-    this.nextLevelCostText = this.add.text(150, 20, `Монет для апа:\n${nextLevelCost}`, { font: '16px Pangolin', fill: '#FFF', align: 'center' });
-    this.passiveBeercoinsText = this.add.text(270, 20, `Пассивный доход:\n${countValer * (beercoinsPerTap/2)}`, { font: '16px Pangolin', fill: '#FFF', align: 'center' });
+    this.passiveBeercoinsText = this.add.text(150, 20, `Пассивный доход:\n${countValer * (beercoinsPerTap/2)}`, { font: '16px Pangolin', fill: '#FFF', align: 'center' });
 
     this.beercoinIcon = this.add.image(30, 70, 'beercoinIcon').setOrigin(0.5, 0.5).setDisplaySize(35, 35);
     this.beercoinsCountText = this.add.text(70, 65, `Beercoins: ${beercoins}`, {
@@ -108,8 +107,8 @@ function create() {
         fill: '#FFF'
     });
 
-    this.beerFill = this.add.image(322, 100, 'beer').setScale(0.03, 0.047);
-    this.emptyMug = this.add.image(330, 100, 'cup').setScale(0.03)
+    this.beerFill = this.add.image(320, 50, 'beer').setScale(0.04, 0.06);
+    this.emptyMug = this.add.image(330, 50, 'cup').setScale(0.04)
         .setInteractive()
         .on('pointerdown', () => levelUp.call(this));
     this.beerFill.setCrop(0, this.beerFill.height, this.beerFill.width, 0);
@@ -184,7 +183,6 @@ function levelUp() {
         nextLevelCost = Math.floor(nextLevelCost * 1.5);
         updateProgressBar.call(this);
         this.perTapText.setText(`Прибыль за тап:\n${beercoinsPerTap}`);
-        this.nextLevelCostText.setText(`Монет для апа:\n${nextLevelCost}`);
     } else {
         createParticle.call(this, 175, 125, "no coins");
     }
@@ -194,7 +192,6 @@ function levelUp() {
 
 function hideMainUI() {
     this.perTapText.visible = false;
-    this.nextLevelCostText.visible = false;
     this.passiveBeercoinsText.visible = false;
     this.beercoinIcon.visible = false;
     this.beercoinsCountText.visible = false;
@@ -206,7 +203,6 @@ function hideMainUI() {
 
 function showMainUI() {
     this.perTapText.visible = true;
-    this.nextLevelCostText.visible = true;
     this.passiveBeercoinsText.visible = true;
     this.beercoinIcon.visible = true;
     this.beercoinsCountText.visible = true;
