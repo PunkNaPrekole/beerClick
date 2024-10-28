@@ -32,7 +32,6 @@ const game = new Phaser.Game(config);
 
 let beercoins = 0;
 let beercoinsPerTap = 1;
-let dailyBeercoins = 0;
 let nextLevelCost = 100;
 let level = 1;
 let multiplier = 1;
@@ -42,6 +41,7 @@ let shopContainer;
 let capsContainer;
 let currentBackgroundSkin = 'default';
 let currentCanSkin = 'defaultCan';
+let countValer = 0;
 
 const skins = {
     backgrounds: [
@@ -75,6 +75,9 @@ function preload() {
     this.load.image('boostButton', 'button.png');
     this.load.image('can', 'beer.png');
     this.load.image('background', 'background.png');
+    this.load.image('shop', 'shop.png');
+    this.load.image('beer', 'beerTexture.jpg');
+    this.load.image('cup', 'cup.png');
 
     skins.backgrounds.concat(skins.cans).forEach((skin) => {
         this.load.image(skin.id, skin.image);
@@ -97,41 +100,21 @@ function create() {
     this.perTapText = this.add.text(10, 20, `Прибыль за тап:\n${beercoinsPerTap}`, { font: '16px Pangolin', fill: '#FFF', align: 'center'
     });
     this.nextLevelCostText = this.add.text(150, 20, `Монет для апа:\n${nextLevelCost}`, { font: '16px Pangolin', fill: '#FFF', align: 'center' });
-    this.dailyBeercoinsText = this.add.text(280, 20, `Монет за день:\n${dailyBeercoins}`, { font: '16px Pangolin', fill: '#FFF', align: 'center' });
+    this.passiveBeercoinsText = this.add.text(270, 20, `Пассивный доход:\n${countValer * (beercoinsPerTap/2)}`, { font: '16px Pangolin', fill: '#FFF', align: 'center' });
 
     this.beercoinIcon = this.add.image(30, 70, 'beercoinIcon').setOrigin(0.5, 0.5).setDisplaySize(35, 35);
     this.beercoinsCountText = this.add.text(70, 65, `Beercoins: ${beercoins}`, {
         font: '16px Pangolin',
         fill: '#FFF'
     });
-    this.levelUpButtonSprite = this.add.sprite(330, 80, 'boostButton') 
-        .setOrigin(0.5)
+
+    this.beerFill = this.add.image(322, 100, 'beer').setScale(0.03, 0.047);
+    this.emptyMug = this.add.image(330, 100, 'cup').setScale(0.03)
         .setInteractive()
         .on('pointerdown', () => levelUp.call(this));
-
-    this.levelUpButtonSprite.displayWidth = 85;
-    this.levelUpButtonSprite.displayHeight = 30;
-    this.levelUpButtonText = this.add.text(330, 80, nextLevelCost, {
-        font: '16px Pangolin',
-        fill: '#000',
-        align: 'center'
-    }).setOrigin(0.5)
-      .setInteractive()
-      .on('pointerdown', () => levelUp.call(this));
-
-    this.levelUpButtonContainer = this.add.container(0, 0);
-    this.levelUpButtonContainer.add([this.levelUpButtonSprite, this.levelUpButtonText]);
-    this.levelUpButtonText.setDepth(1);
-
-
-    this.progressBarBase = this.add.graphics();
-    this.progressBar = this.add.graphics();
-    this.progressBarBase.fillStyle(0xFFFFFF, 0.5);
-    this.progressBarBase.fillRoundedRect(30, 100, 340, 20, 8);
+    this.beerFill.setCrop(0, this.beerFill.height, this.beerFill.width, 0);
     updateProgressBar.call(this);
 
-    this.currentLevelText = this.add.text(10, 102, `${level}`, { font: '16px Pangolin', fill: '#000' });
-    this.nextLevelText = this.add.text(380, 102, `${level + 1}`, { font: '16px Pangolin', fill: '#000' });
     this.multiplierText = this.add.text(10, 670, `Множитель: x${multiplier}`, { font: '18px Pangolin', fill: '#000' });
     this.time.addEvent({ delay: 1000, callback: checkMultiplierIncrease, callbackScope: this, loop: true });
 
@@ -155,9 +138,12 @@ function create() {
 
 function updateProgressBar() {
     const progress = Phaser.Math.Clamp(beercoins / nextLevelCost, 0, 1);
-    this.progressBar.clear();
-    this.progressBar.fillStyle(0xFFC700, 1);
-    this.progressBar.fillRoundedRect(32, 102, (340 - 12) * progress + 12, 16, 8);
+
+    // Определяем уровень заполнения кружки
+    const fillHeight = this.beerFill.height * progress;
+
+    // Обновляем маску для "пива"
+    this.beerFill.setCrop(0, this.beerFill.height - fillHeight, this.beerFill.width, fillHeight);
 }
 
 function collectBeercoin(x, y) {
@@ -173,8 +159,6 @@ function collectBeercoin(x, y) {
     lastTapTime = currentTime;
     const gainedCoins = beercoinsPerTap * multiplier;
     beercoins += gainedCoins;
-    dailyBeercoins += gainedCoins;
-    this.dailyBeercoinsText.setText(`Монет за день:\n${dailyBeercoins}`);
     this.beercoinsCountText.setText(`Beercoins: ${beercoins}`);
     createParticle.call(this, x* 0.3, y * 0.18, gainedCoins);
     updateProgressBar.call(this);
@@ -183,7 +167,7 @@ function collectBeercoin(x, y) {
 }
 
 function checkMultiplierIncrease() {
-    if (totalTapTime >= multiplier * 10 * 1000) {
+    if (totalTapTime >= multiplier * 600 * 1000) {
         multiplier++;
         totalTapTime = 0;
         this.multiplierText.setText(`Множитель: x${multiplier}`);
@@ -199,47 +183,37 @@ function levelUp() {
         beercoinsPerTap++;
         nextLevelCost = Math.floor(nextLevelCost * 1.5);
         updateProgressBar.call(this);
-        this.currentLevelText.setText(`${level}`);
-        this.nextLevelText.setText(`${level + 1}`);
         this.perTapText.setText(`Прибыль за тап:\n${beercoinsPerTap}`);
         this.nextLevelCostText.setText(`Монет для апа:\n${nextLevelCost}`);
     } else {
         createParticle.call(this, 175, 125, "no coins");
     }
     this.beercoinsCountText.setText(`Beercoins: ${beercoins}`);
-    this.levelUpButtonText.setText(nextLevelCost);
     checkAchievements.call(this);
 }
 
 function hideMainUI() {
     this.perTapText.visible = false;
     this.nextLevelCostText.visible = false;
-    this.dailyBeercoinsText.visible = false;
+    this.passiveBeercoinsText.visible = false;
     this.beercoinIcon.visible = false;
     this.beercoinsCountText.visible = false;
-    this.progressBarBase.visible = false;
-    this.progressBar.visible = false;
-    this.currentLevelText.visible = false;
-    this.nextLevelText.visible = false;
+    this.emptyMug.visible = false;
+    this.beerFill.visible = false;
     this.multiplierText.visible = false;
     this.can.visible = false;
-    this.levelUpButtonContainer.visible = false;
 }
 
 function showMainUI() {
     this.perTapText.visible = true;
     this.nextLevelCostText.visible = true;
-    this.dailyBeercoinsText.visible = true;
+    this.passiveBeercoinsText.visible = true;
     this.beercoinIcon.visible = true;
     this.beercoinsCountText.visible = true;
-    this.progressBarBase.visible = true;
-    this.progressBar.visible = true;
-    this.currentLevelText.visible = true;
-    this.nextLevelText.visible = true;
+    this.emptyMug.visible = true;
+    this.beerFill.visible = true;
     this.multiplierText.visible = true;
     this.can.visible = true;
-    this.levelUpButtonContainer.visible = true;
-
 }
 
 function openShop() {
@@ -249,51 +223,55 @@ function openShop() {
 
     const shopBackground = this.add.graphics();
     shopBackground.fillStyle(0x000000, 0.7);
-    shopBackground.fillRect(0, 0, 400, 600);
+    shopBackground.fillRect(0, 0, 400, 700);
     shopContainer.add(shopBackground);
 
 
 
     skins.backgrounds.forEach((background, index) => {
-        const buttonY = 180 + index * 120;
+        const col = Math.floor(index / 5);
+        const row = index % 5;
+
+        const buttonX = 55 + col * 100;
+        const buttonY = 70 + row * 120;
+
         const isPurchased = purchasedSkins.backgrounds.includes(background.id);
         const spriteKey = isPurchased ? background.id : 'background';
 
-        const buttonSprite = this.add.image(50, buttonY, spriteKey)
+        const buttonSprite = this.add.image(buttonX, buttonY, spriteKey)
             .setOrigin(0.5)
             .setScale(0.03)
             .setInteractive()
             .on('pointerdown', () => purchaseSkin.call(this, 'backgrounds', background.id));
         shopContainer.add(buttonSprite);
+
         if (!isPurchased) {
-                    const priceText = this.add.text(50, buttonY + 55, `${background.price}`, { fontSize: '14px', fill: '#FFFFFF' })
-                        .setOrigin(0.5);
-                    shopContainer.add(priceText);
-                }
-
-
+            const priceText = this.add.text(buttonX, buttonY + 55, `${background.price}`, { fontSize: '14px', fill: '#FFFFFF' })
+                .setOrigin(0.5);
+            shopContainer.add(priceText);
+        }
     });
 
-
-
     skins.cans.forEach((can, index) => {
-        const buttonY = 180 + index * 120;
+        const col = Math.floor(index / 5);
+        const row = index % 5;
+        const buttonX = 250 + col * 100;
+        const buttonY = 70 + row * 130;
+
         const isPurchased = purchasedSkins.cans.includes(can.id);
         const spriteKey = isPurchased ? can.id : 'can';
 
-        const buttonSprite = this.add.image(250, buttonY, spriteKey)
+        const buttonSprite = this.add.image(buttonX, buttonY, spriteKey)
             .setOrigin(0.5)
-            .setScale(0.03)
+            .setScale(0.035)
             .setInteractive()
             .on('pointerdown', () => purchaseSkin.call(this, 'cans', can.id));
         shopContainer.add(buttonSprite);
         if (!isPurchased) {
-                    const priceText = this.add.text(250, buttonY + 55, `${can.price}`, { fontSize: '14px', fill: '#FFFFFF' })
+                    const priceText = this.add.text(buttonX, buttonY + 55, `${can.price}`, { fontSize: '14px', fill: '#FFFFFF' })
                         .setOrigin(0.5);
                     shopContainer.add(priceText);
                 }
-
-
     });
 }
 
@@ -370,10 +348,12 @@ function createBottomMenu() {
 function navigateToSection(section) {
     this.menuSound.play();
     if (section === 'Кликер') {
+        this.background.setTexture(currentBackgroundSkin);
         showMainUI.call(this);
         if (shopContainer) shopContainer.destroy(true);
         if (capsContainer) capsContainer.destroy(true);
     } else if (section === 'Магазин') {
+        this.background.setTexture('shop');
         if (capsContainer) capsContainer.destroy(true);
         openShop.call(this);
     } else if (section === 'Крышки') {
@@ -395,7 +375,7 @@ function createParticle(x, y, value) {
         color = '#FFD700';
     }
     const particle = this.add.text(x, y, msg, {
-                    fontSize: '18px',
+                    font: '32px Pangolin',
                     fill: color,
                     fontStyle: 'bold'
                 });
@@ -475,7 +455,7 @@ function showAchievementPopup(name, reward) {
 
 function tryDropCollectibleCap() {
 
-    const dropChance = 1 / 5;
+    const dropChance = 1 / 3000;
     if (Math.random() < dropChance) {
         const randomCap = Phaser.Utils.Array.GetRandom(collectibleCaps);
         if (!collectedCaps[randomCap.id]) {
@@ -544,5 +524,10 @@ function openCapsCollection() {
             }
         }
     });
+}
 
+function startValera() {
+    setInterval(() => {
+        beercoins += countValer * (beercoinsPerTap/2);
+    }, 1000);
 }
