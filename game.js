@@ -1,3 +1,21 @@
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+
+// Ваши настройки Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyCJwE3hUFqJiS1tCrwT9hS9I4BW6x3SJI4",
+    authDomain: "beerclicker-1fa5a.firebaseapp.com",
+    projectId: "beerclicker-1fa5a",
+    storageBucket: "beerclicker-1fa5a.appspot.com",
+    messagingSenderId: "510040217129",
+    appId: "1:510040217129:web:4614466a75cadc4c026e38"
+};
+
+// Инициализация Firebase
+const app = initializeApp(firebaseConfig);
+
+// Инициализация Firestore
+const db = getFirestore(app);
 const config = {
     type: Phaser.AUTO,
     width: 400,
