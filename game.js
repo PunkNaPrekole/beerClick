@@ -557,18 +557,21 @@ function startValera() {
     }, 1000);
 }
 
-function savePlayerData(userId, username, firstName, lastName) {
-    db.collection("players").doc(userId).set({
-        username: username,
-        firstName: firstName,
-        lastName: lastName,
-        level: 1,
-        beercoins: 0,
-        purchasedSkins: {},
-        achievements: []
-    }).then(() => {
+async function savePlayerData(userId, username, firstName, lastName) {
+    try {
+        const userRef = doc(db, "players", userId.toString());
+        await setDoc(userRef, {
+            username: username,
+            firstName: firstName,
+            lastName: lastName,
+            level: 1,
+            beercoins: 0,
+            purchasedSkins: {},
+            achievements: []
+        });
         console.log("Данные пользователя успешно сохранены");
-    }).catch((error) => {
+    } catch (error) {
         console.error("Ошибка при сохранении данных: ", error);
-    });
+    }
 }
+
