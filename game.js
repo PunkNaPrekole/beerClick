@@ -30,7 +30,7 @@ const purchasedSkins = {
 
 const game = new Phaser.Game(config);
 
-let beercoins = 0;
+let beercoins = 20000;
 let beercoinsPerTap = 1;
 let nextLevelCost = 100;
 let level = 1;
@@ -45,39 +45,43 @@ let countValer = 0;
 
 const skins = {
     backgrounds: [
-        { id: 'default', image: 'stairs.png', price: 0 },
-        { id: 'shit room', image: 'shitRoom.png', price: 100 },
-        { id: 'stairs', image: 'stairs.png', price: 200 },
+        { id: 'default', image: 'sprites/stairs.png', price: 0 },
+        { id: 'shit room', image: 'sprites/shitRoom.png', price: 100 },
+        { id: 'stairs', image: 'sprites/stairs.png', price: 200 },
+        { id: 'shop', image: 'sprites/shop.png', price: 200 },
+        { id: 'station', image: 'sprites/station.png', price: 200 },
+        { id: 'tubes', image: 'sprites/tubes.png', price: 200 },
+        { id: 'stall', image: 'sprites/stall.png', price: 200 },
     ],
     cans: [
-        { id: 'defaultCan', image: 'duB.png', price: 0 },
-        { id: 'el papito', image: 'el papito.png', price: 150 },
-        { id: 'dub 99', image: 'duB 99.png', price: 100 },
-        { id: 'varona', image: 'Varona.png', price: 100 },
-        { id: 'dub might', image: 'DUB MIGHT.png', price: 100 },
+        { id: 'defaultCan', image: 'sprites/beer.png', price: 0 },
+        { id: 'el papito', image: 'sprites/el papito.png', price: 150 },
+        { id: 'dub 99', image: 'sprites/duB 99.png', price: 100 },
+        { id: 'varona', image: 'sprites/Varona.png', price: 100 },
+        { id: 'dub might', image: 'sprites/DUB MIGHT.png', price: 100 },
     ],
 };
 
 const collectibleCaps = [
-    { id: 1, image: 'redCap.png', name: 'Rare Cap', rarity: 'rare' },
-    { id: 2, image: 'blueCap.png', name: 'Epic Cap', rarity: 'epic' },
-    { id: 3, image: 'greenCap.png', name: 'Legendary Cap', rarity: 'legendary' },
+    { id: 1, image: 'sprites/redCap.png', name: 'Rare Cap', rarity: 'rare' },
+    { id: 2, image: 'sprites/blueCap.png', name: 'Epic Cap', rarity: 'epic' },
+    { id: 3, image: 'sprites/greenCap.png', name: 'Legendary Cap', rarity: 'legendary' },
 ];
 const collectedCaps = {};
 
 
 function preload() {
-    this.load.image('beercoinIcon', 'beerCoin.png');
-    this.load.audio('clickSound', 'click-sound.mp3');
-    this.load.audio('menuSound', 'menu-sound.mp3');
-    this.load.audio('capSound', 'capSound.mp3');
-    this.load.audio('lvlUpSound', 'lvlUp.mp3');
-    this.load.image('boostButton', 'button.png');
-    this.load.image('can', 'beer.png');
-    this.load.image('background', 'background.png');
-    this.load.image('shop', 'shop.png');
-    this.load.image('beer', 'beerTexture.jpg');
-    this.load.image('cup', 'cup.png');
+    this.load.image('beercoinIcon', 'sprites/beerCoin.png');
+    this.load.audio('clickSound', 'sounds/click-sound.mp3');
+    this.load.audio('menuSound', 'sounds/menu-sound.mp3');
+    this.load.audio('capSound', 'sounds/capSound.mp3');
+    this.load.audio('lvlUpSound', 'sounds/lvlUp.mp3');
+    this.load.image('boostButton', 'sprites/button.png');
+    this.load.image('can', 'sprites/beer.png');
+    this.load.image('background', 'sprites/background.png');
+    this.load.image('shop', 'sprites/shop.png');
+    this.load.image('beer', 'sprites/beerTexture.jpg');
+    this.load.image('cup', 'sprites/cup.png');
 
     skins.backgrounds.concat(skins.cans).forEach((skin) => {
         this.load.image(skin.id, skin.image);
@@ -89,6 +93,13 @@ function preload() {
 }
 
 function create() {
+    if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe.user) {
+            const userId = Telegram.WebApp.initDataUnsafe.user.id;
+            const username = Telegram.WebApp.initDataUnsafe.user.username;
+            const firstName = Telegram.WebApp.initDataUnsafe.user.first_name;
+            const lastName = Telegram.WebApp.initDataUnsafe.user.last_name;
+            savePlayerData(userId, username, firstName, lastName);
+    }
     this.background = this.add.image(200, 400, currentBackgroundSkin).setOrigin(0.5, 0.5).setDisplaySize(400, 600);
     this.background.setScale(0.15);
 
@@ -202,6 +213,7 @@ function hideMainUI() {
 }
 
 function showMainUI() {
+    this.background.setTexture(currentBackgroundSkin);
     this.perTapText.visible = true;
     this.passiveBeercoinsText.visible = true;
     this.beercoinIcon.visible = true;
@@ -344,7 +356,6 @@ function createBottomMenu() {
 function navigateToSection(section) {
     this.menuSound.play();
     if (section === 'Кликер') {
-        this.background.setTexture(currentBackgroundSkin);
         showMainUI.call(this);
         if (shopContainer) shopContainer.destroy(true);
         if (capsContainer) capsContainer.destroy(true);
@@ -526,4 +537,20 @@ function startValera() {
     setInterval(() => {
         beercoins += countValer * (beercoinsPerTap/2);
     }, 1000);
+}
+
+function savePlayerData(userId, username, firstName, lastName) {
+    db.collection("players").doc(userId).set({
+        username: username,
+        firstName: firstName,
+        lastName: lastName,
+        level: 1,
+        beercoins: 0,
+        purchasedSkins: {},
+        achievements: []
+    }).then(() => {
+        console.log("Данные пользователя успешно сохранены");
+    }).catch((error) => {
+        console.error("Ошибка при сохранении данных: ", error);
+    });
 }
