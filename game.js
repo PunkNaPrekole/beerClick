@@ -1,6 +1,3 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-
 const firebaseConfig = {
     apiKey: "AIzaSyCJwE3hUFqJiS1tCrwT9hS9I4BW6x3SJI4",
     authDomain: "beerclicker-1fa5a.firebaseapp.com",
@@ -9,7 +6,8 @@ const firebaseConfig = {
     messagingSenderId: "510040217129",
     appId: "1:510040217129:web:4614466a75cadc4c026e38"
 };
-
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore(app);
 
 const config = {
     type: Phaser.AUTO,
@@ -106,9 +104,6 @@ function preload() {
 }
 
 function create() {
-    
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
     if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe.user) {
             const userId = Telegram.WebApp.initDataUnsafe.user.id;
             const username = Telegram.WebApp.initDataUnsafe.user.username;
