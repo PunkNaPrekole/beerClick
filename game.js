@@ -556,7 +556,7 @@ function savePlayerData(userId, username, firstName, lastName) {
     }).then(() => {
         console.log("Данные пользователя успешно сохранены");
     }).catch((error) => {
-        console.error("Ошибка при сохранении данных: ", error);
+        console.error("Ошибка при сохранении данных: ");
     });
 }
 
