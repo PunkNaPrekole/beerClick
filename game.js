@@ -20,8 +20,8 @@ const config = {
 const achievements = [
     { id: 1, name: "заядлый игрок", description: "Достигните 2 уровня", condition: () => level >= 2, reward: 50, unlocked: false },
     { id: 2, name: "100 Beercoins", description: "Накопите 100 Beercoins", condition: () => beercoins >= 100, reward: 50, unlocked: false },
-    { id: 2, name: "x2 множитель", description: "получите множитель x2", condition: () => multiplier >= 2, reward: 50, unlocked: false },
-    { id: 1, name: "Общажный геймдев", description: "Начните писать игру про пиво", condition: () => beercoins >= 123, reward: 1, unlocked: false },
+    { id: 3, name: "x2 множитель", description: "получите множитель x2", condition: () => multiplier >= 2, reward: 50, unlocked: false },
+    { id: 4, name: "Общажный геймдев", description: "Начните писать игру про пиво", condition: () => beercoins >= 123, reward: 1, unlocked: false },
 ];
 const purchasedSkins = {
     backgrounds: ['default'],
