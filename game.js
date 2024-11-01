@@ -572,18 +572,13 @@ function savePlayerData(userId, username, firstName, lastName) {
     console.log("Username:", typeof username); 
 
     db.collection("players").doc(userId).set({
-        username: "punk_na_prekole",
-        firstName: "Ромашка",
-        lastName: "null",
+        username: username,
+        firstName: firstName,
+        lastName: lastName,
         level: level,
         beercoins: beercoins,
-        purchasedSkins: purchasedSkins,
-        achievements: achievements.filter(a => a.unlocked) 
-    }).then(() => {
-        console.log("Данные пользователя успешно сохранены");
-    }).catch((error) => {
-        console.error("Ошибка при сохранении данных: ", error);
-    });
+        purchasedSkins: "zero",
+        achievements: "zero"});
 }
 
 
