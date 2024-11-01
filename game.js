@@ -30,7 +30,7 @@ const purchasedSkins = {
 
 const game = new Phaser.Game(config);
 
-let beercoins = 20000;
+let beercoins = 1;
 let beercoinsPerTap = 1;
 let nextLevelCost = 100;
 let level = 1;
@@ -557,16 +557,16 @@ function savePlayerData(userId, username, firstName, lastName) {
     achievements.forEach(a => {
         a.unlocked = a.condition(); 
     });
-
+    const filteredAchievements = achievements.map(({ condition, ...rest }) => rest);
     const playerData = {
-        userId: String(userId), // Преобразуем в строку
+        userId: String(userId), 
         username: username,
         firstName: firstName,
         lastName: lastName,
         level: level,
         beercoins: beercoins,
         purchasedSkins: purchasedSkins,
-        achievements: achievements.filter(a => a.unlocked)
+        achievements: filteredAchievements
     };
     db.collection("players").doc(String(userId)).set(playerData)
 }
