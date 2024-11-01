@@ -204,8 +204,8 @@ function levelUp() {
         nextLevelCost = Math.floor(nextLevelCost * 1.5);
         updateProgressBar.call(this);
         this.perTapText.setText(`Прибыль за тап:\n${beercoinsPerTap}`);
-        //savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
-        //                       Telegram.WebApp.initDataUnsafe.user.first_name, Telegram.WebApp.initDataUnsafe.user.last_name);
+        savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
+                               Telegram.WebApp.initDataUnsafe.user.first_name, Telegram.WebApp.initDataUnsafe.user.last_name);
     } else {
         createParticle.call(this, 175, 125, "no coins");
     }
@@ -426,8 +426,8 @@ function unlockAchievement(achievement) {
     beercoins += achievement.reward;
     this.beercoinsCountText.setText(`Beercoins: ${beercoins}`);
     showAchievementPopup.call(this, achievement.name, achievement.reward);
-    //savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
-    //                   Telegram.WebApp.initDataUnsafe.user.first_name, Telegram.WebApp.initDataUnsafe.user.last_name);
+    savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
+                       Telegram.WebApp.initDataUnsafe.user.first_name, Telegram.WebApp.initDataUnsafe.user.last_name);
 }
 
 function showAchievementPopup(name, reward) {
@@ -558,27 +558,17 @@ function savePlayerData(userId, username, firstName, lastName) {
         a.unlocked = a.condition(); 
     });
 
-    console.log({
-        userId,
-        username,
-        firstName,
-        lastName,
-        level,
-        beercoins,
-        purchasedSkins,
-        achievements: achievements.filter(a => a.unlocked) 
-    });
-    console.log("User ID:", typeof userId); 
-    console.log("Username:", typeof username); 
-
-    db.collection("players").doc("9999999999").set({
-        username: "ububu",
-        firstName: "ababab",
-        lastName: "gagagag",
-        level: 13,
-        beercoins: 12456,
-        purchasedSkins: "zero",
-        achievements: "zero"});
+    const playerData = {
+        userId: String(userId), // Преобразуем в строку
+        username: username,
+        firstName: firstName,
+        lastName: lastName,
+        level: level,
+        beercoins: beercoins,
+        purchasedSkins: purchasedSkins,
+        achievements: achievements.filter(a => a.unlocked)
+    };
+    db.collection("players").doc(String(userId)).set(playerData)
 }
 
 
