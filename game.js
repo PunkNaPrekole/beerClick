@@ -1,14 +1,3 @@
-const firebaseConfig = {
-    apiKey: "AIzaSyCJwE3hUFqJiS1tCrwT9hS9I4BW6x3SJI4",
-    authDomain: "beerclicker-1fa5a.firebaseapp.com",
-    projectId: "beerclicker-1fa5a",
-    storageBucket: "beerclicker-1fa5a.appspot.com",
-    messagingSenderId: "510040217129",
-    appId: "1:510040217129:web:4614466a75cadc4c026e38"
-};
-const app = firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore(app);
-
 const config = {
     type: Phaser.AUTO,
     width: 400,
@@ -110,7 +99,7 @@ function create() {
             const firstName = Telegram.WebApp.initDataUnsafe.user.first_name;
             const lastName = Telegram.WebApp.initDataUnsafe.user.last_name;
             savePlayerData(userId, username, firstName, lastName);
-    }
+        }
     this.background = this.add.image(200, 400, currentBackgroundSkin).setOrigin(0.5, 0.5).setDisplaySize(400, 600);
     this.background.setScale(0.15);
 
@@ -205,6 +194,8 @@ function levelUp() {
         nextLevelCost = Math.floor(nextLevelCost * 1.5);
         updateProgressBar.call(this);
         this.perTapText.setText(`Прибыль за тап:\n${beercoinsPerTap}`);
+        savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
+                               Telegram.WebApp.initDataUnsafe.user.first_name, Telegram.WebApp.initDataUnsafe.user.last_name);
     } else {
         createParticle.call(this, 175, 125, "no coins");
     }
@@ -425,6 +416,8 @@ function unlockAchievement(achievement) {
     beercoins += achievement.reward;
     this.beercoinsCountText.setText(`Beercoins: ${beercoins}`);
     showAchievementPopup.call(this, achievement.name, achievement.reward);
+    savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
+                       Telegram.WebApp.initDataUnsafe.user.first_name, Telegram.WebApp.initDataUnsafe.user.last_name);
 }
 
 function showAchievementPopup(name, reward) {
@@ -550,21 +543,20 @@ function startValera() {
     }, 1000);
 }
 
-async function savePlayerData(userId, username, firstName, lastName) {
-    try {
-        const userRef = doc(db, "players", userId.toString());
-        await setDoc(userRef, {
-            username: username,
-            firstName: firstName,
-            lastName: lastName,
-            level: 1,
-            beercoins: 0,
-            purchasedSkins: {},
-            achievements: []
-        });
+// Функция для сохранения данных игрока
+function savePlayerData(userId, username, firstName, lastName) {
+    db.collection("players").doc(userId).set({
+        username: username,
+        firstName: firstName,
+        lastName: lastName,
+        level: level,
+        beercoins: beercoins,
+        purchasedSkins: purchasedSkins,
+        achievements: achievements.filter(a => a.unlocked) // сохраняем только достигнутые достижения
+    }).then(() => {
         console.log("Данные пользователя успешно сохранены");
-    } catch (error) {
+    }).catch((error) => {
         console.error("Ошибка при сохранении данных: ", error);
-    }
+    });
 }
 
