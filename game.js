@@ -205,7 +205,7 @@ function levelUp() {
         updateProgressBar.call(this);
         this.perTapText.setText(`Прибыль за тап:\n${beercoinsPerTap}`);
         //savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
-                               Telegram.WebApp.initDataUnsafe.user.first_name, Telegram.WebApp.initDataUnsafe.user.last_name);
+        //                       Telegram.WebApp.initDataUnsafe.user.first_name, Telegram.WebApp.initDataUnsafe.user.last_name);
     } else {
         createParticle.call(this, 175, 125, "no coins");
     }
@@ -427,7 +427,7 @@ function unlockAchievement(achievement) {
     this.beercoinsCountText.setText(`Beercoins: ${beercoins}`);
     showAchievementPopup.call(this, achievement.name, achievement.reward);
     //savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
-                       Telegram.WebApp.initDataUnsafe.user.first_name, Telegram.WebApp.initDataUnsafe.user.last_name);
+    //                   Telegram.WebApp.initDataUnsafe.user.first_name, Telegram.WebApp.initDataUnsafe.user.last_name);
 }
 
 function showAchievementPopup(name, reward) {
