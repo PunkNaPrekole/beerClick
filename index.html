@@ -9,8 +9,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Pangolin&display=swap" rel="stylesheet">
     <script src="phaser.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script>
+        // Конфигурация Firebase
+        const firebaseConfig = {
+                apiKey: "AIzaSyCJwE3hUFqJiS1tCrwT9hS9I4BW6x3SJI4",
+                authDomain: "beerclicker-1fa5a.firebaseapp.com",
+                projectId: "beerclicker-1fa5a",
+                storageBucket: "beerclicker-1fa5a.appspot.com",
+                messagingSenderId: "510040217129",
+                appId: "1:510040217129:web:4614466a75cadc4c026e38"
+        };
+
+        // Инициализация Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+    </script>
 </head>
 <body>
 <script src="game.js"></script>
