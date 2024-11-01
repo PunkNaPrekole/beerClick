@@ -96,7 +96,7 @@ function create() {
     if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe.user) {
     const user = Telegram.WebApp.initDataUnsafe.user;
 
-    const userId = user.id || null;
+    const userId = user.id || 99999999;
     const username = user.username || 'Гость'; 
     const firstName = user.first_name || 'Неизвестно';
     const lastName = user.last_name || 'Неизвестно';
