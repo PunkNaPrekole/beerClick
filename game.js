@@ -204,7 +204,7 @@ function levelUp() {
         nextLevelCost = Math.floor(nextLevelCost * 1.5);
         updateProgressBar.call(this);
         this.perTapText.setText(`Прибыль за тап:\n${beercoinsPerTap}`);
-        savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
+        //savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
                                Telegram.WebApp.initDataUnsafe.user.first_name, Telegram.WebApp.initDataUnsafe.user.last_name);
     } else {
         createParticle.call(this, 175, 125, "no coins");
@@ -426,7 +426,7 @@ function unlockAchievement(achievement) {
     beercoins += achievement.reward;
     this.beercoinsCountText.setText(`Beercoins: ${beercoins}`);
     showAchievementPopup.call(this, achievement.name, achievement.reward);
-    savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
+    //savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
                        Telegram.WebApp.initDataUnsafe.user.first_name, Telegram.WebApp.initDataUnsafe.user.last_name);
 }
 
@@ -572,11 +572,11 @@ function savePlayerData(userId, username, firstName, lastName) {
     console.log("Username:", typeof username); 
 
     db.collection("players").doc(9999999).set({
-        username: username,
-        firstName: firstName,
-        lastName: lastName,
-        level: level,
-        beercoins: beercoins,
+        username: "ububu",
+        firstName: "ababab",
+        lastName: "gagagag",
+        level: 13,
+        beercoins: 12456,
         purchasedSkins: "zero",
         achievements: "zero"});
 }
