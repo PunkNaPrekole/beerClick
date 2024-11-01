@@ -572,9 +572,9 @@ function savePlayerData(userId, username, firstName, lastName) {
     console.log("Username:", typeof username); 
 
     db.collection("players").doc(userId).set({
-        username: username,
-        firstName: firstName,
-        lastName: lastName,
+        username: "punk_na_prekole",
+        firstName: "Ромашка",
+        lastName: "null",
         level: level,
         beercoins: beercoins,
         purchasedSkins: purchasedSkins,
