@@ -571,7 +571,7 @@ function savePlayerData(userId, username, firstName, lastName) {
     console.log("User ID:", typeof userId); 
     console.log("Username:", typeof username); 
 
-    db.collection("players").doc(userId).set({
+    db.collection("players").doc(9999999).set({
         username: username,
         firstName: firstName,
         lastName: lastName,
