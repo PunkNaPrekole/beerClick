@@ -568,6 +568,8 @@ function savePlayerData(userId, username, firstName, lastName) {
         purchasedSkins,
         achievements: achievements.filter(a => a.unlocked) 
     });
+    console.log("User ID:", typeof user.id); 
+    console.log("Username:", typeof user.username); 
 
     db.collection("players").doc(userId).set({
         username: username,
