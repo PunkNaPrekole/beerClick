@@ -94,12 +94,22 @@ function preload() {
 
 function create() {
     if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe.user) {
-            const userId = Telegram.WebApp.initDataUnsafe.user.id;
-            const username = Telegram.WebApp.initDataUnsafe.user.username;
-            const firstName = Telegram.WebApp.initDataUnsafe.user.first_name;
-            const lastName = Telegram.WebApp.initDataUnsafe.user.last_name;
-            savePlayerData(userId, username, firstName, lastName);
-        }
+    const user = Telegram.WebApp.initDataUnsafe.user;
+
+    const userId = user.id || null;
+    const username = user.username || 'Гость'; 
+    const firstName = user.first_name || 'Неизвестно';
+    const lastName = user.last_name || 'Неизвестно';
+
+    console.log({
+        userId,
+        username,
+        firstName,
+        lastName
+    });
+
+    savePlayerData(userId, username, firstName, lastName);
+    }
     this.background = this.add.image(200, 400, currentBackgroundSkin).setOrigin(0.5, 0.5).setDisplaySize(400, 600);
     this.background.setScale(0.15);
 
@@ -543,8 +553,22 @@ function startValera() {
     }, 1000);
 }
 
-// Функция для сохранения данных игрока
 function savePlayerData(userId, username, firstName, lastName) {
+    achievements.forEach(a => {
+        a.unlocked = a.condition(); 
+    });
+
+    console.log({
+        userId,
+        username,
+        firstName,
+        lastName,
+        level,
+        beercoins,
+        purchasedSkins,
+        achievements: achievements.filter(a => a.unlocked) 
+    });
+
     db.collection("players").doc(userId).set({
         username: username,
         firstName: firstName,
@@ -552,11 +576,12 @@ function savePlayerData(userId, username, firstName, lastName) {
         level: level,
         beercoins: beercoins,
         purchasedSkins: purchasedSkins,
-        achievements: achievements.filter(a => a.unlocked) // сохраняем только достигнутые достижения
+        achievements: achievements.filter(a => a.unlocked) 
     }).then(() => {
         console.log("Данные пользователя успешно сохранены");
     }).catch((error) => {
-        console.error("Ошибка при сохранении данных: ");
+        console.error("Ошибка при сохранении данных: ", error);
     });
 }
+
 
