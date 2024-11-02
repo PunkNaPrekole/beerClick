@@ -576,6 +576,7 @@ function loadPlayerData(userId, onDataLoaded) {
         if (doc.exists) {
             const data = doc.data();
             level = data.level || 1;
+            beercoinsPerTap = level;
             beercoins = data.beercoins || 0;
             purchasedSkins = data.purchasedSkins || { backgrounds: ['default'], cans: ['defaultCan'] };
             achievements.forEach(a => {
