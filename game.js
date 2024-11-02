@@ -129,9 +129,12 @@ function create() {
                 }
             });
     }
+    this.beercoinsCountText.setText(`Beercoins: ${beercoins}`);
+    this.beercoinsPerTap.setText(`Прибыль за тап: ${beercoinsPerTap}`);
+    applySkin.call(this, 'backgrounds', currentBackgroundSkin);
+    applySkin.call(this, 'cans', currentCanSkin);
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') {
-            // Сохранить данные игрока, когда вкладка скрыта
             savePlayerData.call(this, userId, username, firstName, lastName);
         }
     });
@@ -355,7 +358,7 @@ function purchaseSkin(type, skinId) {
         openShop.call(this)
         applySkin(type, skinId);
         navigateToSection.call(this, 'Кликер')
-        savePlayerData.call(this, Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
+        savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
                                        Telegram.WebApp.initDataUnsafe.user.first_name, Telegram.WebApp.initDataUnsafe.user.last_name);
     } else {
         console.log('Недостаточно средств!');
@@ -462,7 +465,7 @@ function unlockAchievement(achievement) {
     beercoins += achievement.reward;
     this.beercoinsCountText.setText(`Beercoins: ${beercoins}`);
     showAchievementPopup.call(this, achievement.name, achievement.reward);
-    savePlayerData.call(this, Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
+    savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
                        Telegram.WebApp.initDataUnsafe.user.first_name, Telegram.WebApp.initDataUnsafe.user.last_name);
 }
 
@@ -520,7 +523,7 @@ function tryDropCollectibleCap() {
                 }
                 collectedCaps[randomCap.id]++;
         showCollectibleCapPopup.call(this, randomCap);
-        savePlayerData.call(this, Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
+        savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
                                        Telegram.WebApp.initDataUnsafe.user.first_name, Telegram.WebApp.initDataUnsafe.user.last_name);
     }
 }
@@ -633,10 +636,6 @@ function loadPlayerData(userId, onDataLoaded) {
             });
             beercoinsPerTap = level;
             console.log("Данные игрока загружены:", data);
-            this.beercoinsCountText.setText(`Beercoins: ${beercoins}`);
-            this.beercoinsPerTap.setText(`Прибыль за тап: ${beercoinsPerTap}`);
-            applySkin.call(this, 'backgrounds', currentBackgroundSkin);
-            applySkin.call(this, 'cans', currentCanSkin);
             onDataLoaded();
         } else {
             console.log("Данных игрока не найдено, будет создан новый игрок");
