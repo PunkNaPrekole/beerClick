@@ -589,7 +589,7 @@ function savePlayerData(userId, username, firstName, lastName) {
     });
     const filteredAchievements = achievements.map(({ condition, ...rest }) => rest);
     const playerData = {
-        platform: "telegram"
+        platform: "telegram";
         userId: String(userId),
         username: username,
         firstName: firstName,
