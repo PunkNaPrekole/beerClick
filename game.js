@@ -129,9 +129,13 @@ function create() {
                 }
             });
     }
-    window.addEventListener('beforeunload', () => {
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+            // Сохранить данные игрока, когда вкладка скрыта
             savePlayerData(userId, username, firstName, lastName);
+        }
     });
+
     this.background = this.add.image(200, 400, currentBackgroundSkin).setOrigin(0.5, 0.5).setDisplaySize(400, 600);
     this.background.setScale(0.15);
 
@@ -351,6 +355,8 @@ function purchaseSkin(type, skinId) {
         openShop.call(this)
         applySkin(type, skinId);
         navigateToSection.call(this, 'Кликер')
+        savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
+                                       Telegram.WebApp.initDataUnsafe.user.first_name, Telegram.WebApp.initDataUnsafe.user.last_name);
     } else {
         console.log('Недостаточно средств!');
         createParticle.call(this, 175, 125, "no coins");
@@ -514,6 +520,8 @@ function tryDropCollectibleCap() {
                 }
                 collectedCaps[randomCap.id]++;
         showCollectibleCapPopup.call(this, randomCap);
+        savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
+                                       Telegram.WebApp.initDataUnsafe.user.first_name, Telegram.WebApp.initDataUnsafe.user.last_name);
     }
 }
 
