@@ -348,13 +348,13 @@ function purchaseSkin(type, skinId) {
         beercoins -= selectedSkin.price;
         this.beercoinsCountText.setText(`Beercoins: ${beercoins}`);
         purchasedSkins[type].push(skinId);
-        openShop.call(this)
+        openShop.call(this);
         applySkin(type, skinId);
         savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, 
                        Telegram.WebApp.initDataUnsafe.user.username,
                        Telegram.WebApp.initDataUnsafe.user.first_name, 
                        Telegram.WebApp.initDataUnsafe.user.last_name);
-        navigateToSection.call(this, 'Кликер')
+        navigateToSection.call(this, 'Кликер');
         
     } else {
         console.log('Недостаточно средств!');
@@ -364,10 +364,10 @@ function purchaseSkin(type, skinId) {
 
 function applySkin(type, skinId) {
     if (type === 'backgrounds') {
-        this.background.setTexture(skinId);
+        //this.background.setTexture(skinId);
         currentBackgroundSkin = skinId;
     } else if (type === 'cans') {
-        this.can.setTexture(skinId);
+        //this.can.setTexture(skinId);
         currentCanSkin = skinId;
     }
 }
