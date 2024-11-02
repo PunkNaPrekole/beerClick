@@ -23,7 +23,7 @@ const achievements = [
     { id: 2, name: "x2 множитель", description: "получите множитель x2", condition: () => multiplier >= 2, reward: 50, unlocked: false },
     { id: 1, name: "Общажный геймдев", description: "Начните писать игру про пиво", condition: () => beercoins >= 123, reward: 1, unlocked: false },
 ];
-const purchasedSkins = {
+ let purchasedSkins = {
     backgrounds: ['default'],
     cans: ['defaultCan']
 };
