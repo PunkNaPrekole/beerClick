@@ -129,10 +129,6 @@ function create() {
                 }
             });
     }
-    this.beercoinsCountText.setText(`Beercoins: ${beercoins}`);
-    this.beercoinsPerTap.setText(`Прибыль за тап: ${beercoinsPerTap}`);
-    applySkin.call(this, 'backgrounds', currentBackgroundSkin);
-    applySkin.call(this, 'cans', currentCanSkin);
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') {
             savePlayerData.call(this, userId, username, firstName, lastName);
