@@ -94,6 +94,10 @@ const collectedCaps = {};
 
 
 function preload() {
+    this.loadingText = this.add.text(200, 400, 'Загрузка...', {
+        font: '20px Pangolin',
+        fill: '#FFFFFF'
+    }).setOrigin(0.5);
     this.load.image('beercoinIcon', 'sprites/beerCoin.png');
     this.load.audio('clickSound', 'sounds/click-sound.mp3');
     this.load.audio('menuSound', 'sounds/menu-sound.mp3');
@@ -116,55 +120,50 @@ function preload() {
 }
 
 function create() {
+    this.loadingText.destroy();
+    this.background = this.add.image(200, 400, currentBackgroundSkin).setOrigin(0.5, 0.5).setDisplaySize(400, 600);
+    this.background.setScale(0.15);
+    this.perTapText = this.add.text(10, 20, `Прибыль за тап:\n${beercoinsPerTap}`, { font: '16px Pangolin', fill: '#FFF', align: 'center'});
+    this.passiveBeercoinsText = this.add.text(150, 20, `Пассивный доход:\n${countValer * (beercoinsPerTap/2)}`, { font: '16px Pangolin', fill: '#FFF', align: 'center' });
+    this.beercoinsCountText = this.add.text(70, 65, `Beercoins: ${beercoins}`, { font: '16px Pangolin', fill: '#FFF' });
+    this.can = this.add.sprite(200, 400, currentCanSkin).setInteractive();
+    this.can.setScale(0.15);
     let userId, username, firstName, lastName;
     if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe.user) {
             userId = Telegram.WebApp.initDataUnsafe.user.id;
             username = Telegram.WebApp.initDataUnsafe.user.username;
             firstName = Telegram.WebApp.initDataUnsafe.user.first_name;
             lastName = Telegram.WebApp.initDataUnsafe.user.last_name;
-
-            loadPlayerData(userId, (isNewPlayer) => {
+         
+            loadPlayerData.call(this, userId, (isNewPlayer) => {
                 if (isNewPlayer) {
                     savePlayerData(userId, username, firstName, lastName);
                 }
+            
             });
-    }
+        }
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') {
             savePlayerData.call(this, userId, username, firstName, lastName);
         }
     });
 
-    this.background = this.add.image(200, 400, currentBackgroundSkin).setOrigin(0.5, 0.5).setDisplaySize(400, 600);
-    this.background.setScale(0.15);
-
     this.clickSound = this.sound.add('clickSound');
     this.menuSound = this.sound.add('menuSound');
     this.capSound = this.sound.add('capSound');
     this.lvlUpSound = this.sound.add('lvlUpSound');
 
-    this.perTapText = this.add.text(10, 20, `Прибыль за тап:\n${beercoinsPerTap}`, { font: '16px Pangolin', fill: '#FFF', align: 'center'
-    });
-    this.passiveBeercoinsText = this.add.text(150, 20, `Пассивный доход:\n${countValer * (beercoinsPerTap/2)}`, { font: '16px Pangolin', fill: '#FFF', align: 'center' });
+
 
     this.beercoinIcon = this.add.image(30, 70, 'beercoinIcon').setOrigin(0.5, 0.5).setDisplaySize(35, 35);
-    this.beercoinsCountText = this.add.text(70, 65, `Beercoins: ${beercoins}`, {
-        font: '16px Pangolin',
-        fill: '#FFF'
-    });
-
     this.beerFill = this.add.image(320, 50, 'beer').setScale(0.04, 0.06);
-    this.emptyMug = this.add.image(330, 50, 'cup').setScale(0.04)
-        .setInteractive()
-        .on('pointerdown', () => levelUp.call(this));
+    this.emptyMug = this.add.image(330, 50, 'cup').setScale(0.04).setInteractive().on('pointerdown', () => levelUp.call(this));
     this.beerFill.setCrop(0, this.beerFill.height, this.beerFill.width, 0);
     updateProgressBar.call(this);
 
     this.multiplierText = this.add.text(10, 670, `Множитель: x${multiplier}`, { font: '18px Pangolin', fill: '#000' });
     this.time.addEvent({ delay: 1000, callback: checkMultiplierIncrease, callbackScope: this, loop: true });
-
-    this.can = this.add.sprite(200, 400, currentCanSkin).setInteractive();
-    this.can.setScale(0.15);
+    
     this.can.on('pointerdown', (pointer) => {
         this.can.scaleY = 0.145;
         this.can.scaleX = 0.155;
@@ -176,8 +175,6 @@ function create() {
         tryDropCollectibleCap.call(this);
         this.clickSound.play();
     });
-
-
     createBottomMenu.call(this);
 }
 
@@ -633,6 +630,10 @@ function loadPlayerData(userId, onDataLoaded) {
             beercoinsPerTap = level;
             console.log("Данные игрока загружены:", data);
             onDataLoaded();
+            if (this.background) this.background.setTexture(currentBackgroundSkin);
+            if (this.can) this.can.setTexture(currentCanSkin);
+            if (this.beercoinsCountText) this.beercoinsCountText.setText(`Beercoins: ${beercoins}`);
+            if (this.perTapText) this.perTapText.setText(`Прибыль за тап:\n${beercoinsPerTap}`);
         } else {
             console.log("Данных игрока не найдено, будет создан новый игрок");
             onDataLoaded(true);
