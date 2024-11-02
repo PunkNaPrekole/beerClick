@@ -20,8 +20,8 @@ const config = {
 const achievements = [
     { id: 1, name: "заядлый игрок", description: "Достигните 2 уровня", condition: () => level >= 2, reward: 50, unlocked: false },
     { id: 2, name: "100 Beercoins", description: "Накопите 100 Beercoins", condition: () => beercoins >= 100, reward: 50, unlocked: false },
-    { id: 3, name: "x2 множитель", description: "получите множитель x2", condition: () => multiplier >= 2, reward: 50, unlocked: false },
-    { id: 4, name: "Общажный геймдев", description: "Начните писать игру про пиво", condition: () => beercoins >= 123, reward: 1, unlocked: false },
+    { id: 2, name: "x2 множитель", description: "получите множитель x2", condition: () => multiplier >= 2, reward: 50, unlocked: false },
+    { id: 1, name: "Общажный геймдев", description: "Начните писать игру про пиво", condition: () => beercoins >= 123, reward: 1, unlocked: false },
 ];
 const purchasedSkins = {
     backgrounds: ['default'],
@@ -30,7 +30,7 @@ const purchasedSkins = {
 
 const game = new Phaser.Game(config);
 
-let beercoins = 1;
+let beercoins = 20000;
 let beercoinsPerTap = 1;
 let nextLevelCost = 100;
 let level = 1;
@@ -93,23 +93,22 @@ function preload() {
 }
 
 function create() {
+    let userId, username, firstName, lastName;
     if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe.user) {
-    const user = Telegram.WebApp.initDataUnsafe.user;
+            userId = Telegram.WebApp.initDataUnsafe.user.id;
+            username = Telegram.WebApp.initDataUnsafe.user.username;
+            firstName = Telegram.WebApp.initDataUnsafe.user.first_name;
+            lastName = Telegram.WebApp.initDataUnsafe.user.last_name;
 
-    const userId = user.id || 99999999;
-    const username = user.username || 'Гость'; 
-    const firstName = user.first_name || 'Неизвестно';
-    const lastName = user.last_name || 'Неизвестно';
-
-    console.log({
-        userId,
-        username,
-        firstName,
-        lastName
-    });
-
-    savePlayerData(userId, username, firstName, lastName);
+            loadPlayerData(userId, (isNewPlayer) => {
+                if (isNewPlayer) {
+                    savePlayerData(userId, username, firstName, lastName);
+                }
+            });
     }
+    window.addEventListener('beforeunload', () => {
+            savePlayerData(userId, username, firstName, lastName);
+    });
     this.background = this.add.image(200, 400, currentBackgroundSkin).setOrigin(0.5, 0.5).setDisplaySize(400, 600);
     this.background.setScale(0.15);
 
@@ -555,11 +554,11 @@ function startValera() {
 
 function savePlayerData(userId, username, firstName, lastName) {
     achievements.forEach(a => {
-        a.unlocked = a.condition(); 
+        a.unlocked = a.condition();
     });
     const filteredAchievements = achievements.map(({ condition, ...rest }) => rest);
     const playerData = {
-        userId: String(userId), 
+        userId: String(userId),
         username: username,
         firstName: firstName,
         lastName: lastName,
@@ -570,5 +569,26 @@ function savePlayerData(userId, username, firstName, lastName) {
     };
     db.collection("players").doc(String(userId)).set(playerData)
 }
+function loadPlayerData(userId, onDataLoaded) {
+    const docRef = db.collection("players").doc(String(userId));
 
-
+    docRef.get().then((doc) => {
+        if (doc.exists) {
+            const data = doc.data();
+            level = data.level || 1;
+            beercoins = data.beercoins || 0;
+            purchasedSkins = data.purchasedSkins || { backgrounds: ['default'], cans: ['defaultCan'] };
+            achievements.forEach(a => {
+                const found = data.achievements.find(d => d.id === a.id);
+                a.unlocked = !!found;
+            });
+            console.log("Данные игрока загружены:", data);
+            onDataLoaded();
+        } else {
+            console.log("Данных игрока не найдено, будет создан новый игрок");
+            onDataLoaded(true);
+        }
+    }).catch((error) => {
+        console.error("Ошибка при загрузке данных игрока:", error);
+    });
+}
