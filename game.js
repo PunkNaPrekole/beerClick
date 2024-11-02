@@ -231,7 +231,7 @@ function levelUp() {
         beercoins -= nextLevelCost;
         level++;
         beercoinsPerTap++;
-        const nextLevelCost = getNextLevelCost(level);
+        nextLevelCost = getNextLevelCost(level);
         updateProgressBar.call(this);
         this.perTapText.setText(`Прибыль за тап:\n${beercoinsPerTap}`);
         savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
