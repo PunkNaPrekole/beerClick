@@ -20,8 +20,8 @@ const config = {
 const achievements = [
     { id: 1, name: "заядлый игрок", description: "Достигните 2 уровня", condition: () => level >= 2, reward: 50, unlocked: false },
     { id: 2, name: "100 Beercoins", description: "Накопите 100 Beercoins", condition: () => beercoins >= 100, reward: 50, unlocked: false },
-    { id: 2, name: "x2 множитель", description: "получите множитель x2", condition: () => multiplier >= 2, reward: 50, unlocked: false },
-    { id: 1, name: "Общажный геймдев", description: "Начните писать игру про пиво", condition: () => beercoins >= 123, reward: 1, unlocked: false },
+    { id: 3, name: "x2 множитель", description: "получите множитель x2", condition: () => multiplier >= 2, reward: 50, unlocked: false },
+    { id: 4, name: "Общажный геймдев", description: "Начните писать игру про пиво", condition: () => beercoins >= 123, reward: 1, unlocked: false },
 ];
  let purchasedSkins = {
     backgrounds: ['default'],
@@ -30,7 +30,7 @@ const achievements = [
 
 const game = new Phaser.Game(config);
 
-let beercoins = 20000;
+let beercoins = 1;
 let beercoinsPerTap = 1;
 let nextLevelCost = 100;
 let level = 1;
@@ -43,6 +43,28 @@ let currentBackgroundSkin = 'default';
 let currentCanSkin = 'defaultCan';
 let countValer = 0;
 
+const levelCosts = [
+    1500,    // 1
+    6000,    // 2
+    20000,   // 3
+    40000,   // 4
+    100000,  // 5
+    200000,  // 6
+    500000,  // 7
+    750000,  // 8
+    1000000, // 9
+    1500000, // 10
+    2500000, // 11
+    5000000, // 12
+    7000000, // 13
+    10000000,// 14
+    15000000,// 15
+    25000000,// 16
+    40000000,// 17
+    60000000,// 18
+    90000000,// 19
+    130000000// 20
+];
 const skins = {
     backgrounds: [
         { id: 'default', image: 'sprites/stairs.png', price: 0 },
@@ -67,6 +89,7 @@ const collectibleCaps = [
     { id: 2, image: 'sprites/blueCap.png', name: 'Epic Cap', rarity: 'epic' },
     { id: 3, image: 'sprites/greenCap.png', name: 'Legendary Cap', rarity: 'legendary' },
 ];
+
 const collectedCaps = {};
 
 
@@ -194,13 +217,21 @@ function checkMultiplierIncrease() {
     }
 }
 
+function getNextLevelCost(currentLevel) {
+    if (currentLevel <= levelCosts.length) {
+        return levelCosts[currentLevel - 1];
+    }
+    const previousCost = levelCosts[levelCosts.length - 1];
+    return previousCost + (100000 * currentLevel);
+}
+
 function levelUp() {
     if (beercoins >= nextLevelCost){
         this.lvlUpSound.play();
         beercoins -= nextLevelCost;
         level++;
         beercoinsPerTap++;
-        nextLevelCost = Math.floor(nextLevelCost * 1.5);
+        const nextLevelCost = getNextLevelCost(level);
         updateProgressBar.call(this);
         this.perTapText.setText(`Прибыль за тап:\n${beercoinsPerTap}`);
         savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
@@ -558,6 +589,7 @@ function savePlayerData(userId, username, firstName, lastName) {
     });
     const filteredAchievements = achievements.map(({ condition, ...rest }) => rest);
     const playerData = {
+        platform: "telegram"
         userId: String(userId),
         username: username,
         firstName: firstName,
@@ -565,10 +597,15 @@ function savePlayerData(userId, username, firstName, lastName) {
         level: level,
         beercoins: beercoins,
         purchasedSkins: purchasedSkins,
-        achievements: filteredAchievements
+        achievements: filteredAchievements,
+        currentBackgroundSkin: currentBackgroundSkin,
+        currentCanSkin: currentCanSkin,
+        multiplier: multiplier,
+        countValer: countValer
     };
-    db.collection("players").doc(String(userId)).set(playerData)
+    db.collection("players").doc(String(userId)).set(playerData);
 }
+
 function loadPlayerData(userId, onDataLoaded) {
     const docRef = db.collection("players").doc(String(userId));
 
@@ -576,13 +613,17 @@ function loadPlayerData(userId, onDataLoaded) {
         if (doc.exists) {
             const data = doc.data();
             level = data.level || 1;
-            beercoinsPerTap = level;
             beercoins = data.beercoins || 0;
             purchasedSkins = data.purchasedSkins || { backgrounds: ['default'], cans: ['defaultCan'] };
+            currentBackgroundSkin = data.currentBackgroundSkin || 'default';
+            currentCanSkin = data.currentCanSkin || 'defaultCan';
+            multiplier = data.multiplier || 1;
+            countValer = data.countValer || 0;
             achievements.forEach(a => {
                 const found = data.achievements.find(d => d.id === a.id);
                 a.unlocked = !!found;
             });
+            beercoinsPerTap = level;
             console.log("Данные игрока загружены:", data);
             onDataLoaded();
         } else {
