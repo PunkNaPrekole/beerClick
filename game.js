@@ -81,6 +81,10 @@ const skins = {
         { id: 'dub 99', image: 'sprites/duB 99.png', price: 100 },
         { id: 'varona', image: 'sprites/Varona.png', price: 100 },
         { id: 'dub might', image: 'sprites/DUB MIGHT.png', price: 100 },
+        { id: 'boran krasny', image: 'sprites/Boran kracny.png', price: 100 },
+        { id: 'boran zhelty', image: 'sprites/Boran zhelty.png', price: 100 },
+        { id: 'taktika', image: 'sprites/Taktika.png', price: 100 },
+        { id: 'blanc', image: 'sprites/allBlanc.png', price: 100 },
     ],
 };
 
