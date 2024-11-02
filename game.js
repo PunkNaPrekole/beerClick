@@ -350,9 +350,12 @@ function purchaseSkin(type, skinId) {
         purchasedSkins[type].push(skinId);
         openShop.call(this)
         applySkin(type, skinId);
+        savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, 
+                       Telegram.WebApp.initDataUnsafe.user.username,
+                       Telegram.WebApp.initDataUnsafe.user.first_name, 
+                       Telegram.WebApp.initDataUnsafe.user.last_name);
         navigateToSection.call(this, 'Кликер')
-        savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, Telegram.WebApp.initDataUnsafe.user.username,
-                                       Telegram.WebApp.initDataUnsafe.user.first_name, Telegram.WebApp.initDataUnsafe.user.last_name);
+        
     } else {
         console.log('Недостаточно средств!');
         createParticle.call(this, 175, 125, "no coins");
