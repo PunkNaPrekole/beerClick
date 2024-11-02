@@ -357,7 +357,7 @@ function purchaseSkin(type, skinId) {
         this.beercoinsCountText.setText(`Beercoins: ${beercoins}`);
         purchasedSkins[type].push(skinId);
         openShop.call(this);
-        applySkin(type, skinId);
+        applySkin.call(this, type, skinId);
         savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, 
                        Telegram.WebApp.initDataUnsafe.user.username,
                        Telegram.WebApp.initDataUnsafe.user.first_name, 
@@ -372,10 +372,10 @@ function purchaseSkin(type, skinId) {
 
 function applySkin(type, skinId) {
     if (type === 'backgrounds') {
-        //this.background.setTexture(skinId);
+        this.background.setTexture(skinId);
         currentBackgroundSkin = skinId;
     } else if (type === 'cans') {
-        //this.can.setTexture(skinId);
+        this.can.setTexture(skinId);
         currentCanSkin = skinId;
     }
 }
