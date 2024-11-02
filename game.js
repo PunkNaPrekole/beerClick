@@ -147,6 +147,14 @@ function create() {
             savePlayerData.call(this, userId, username, firstName, lastName);
         }
     });
+    window.addEventListener('beforeunload', () => {
+        savePlayerData(
+            Telegram.WebApp.initDataUnsafe.user.id,
+            Telegram.WebApp.initDataUnsafe.user.username,
+            Telegram.WebApp.initDataUnsafe.user.first_name,
+            Telegram.WebApp.initDataUnsafe.user.last_name
+        );
+    });
 
     this.clickSound = this.sound.add('clickSound');
     this.menuSound = this.sound.add('menuSound');
