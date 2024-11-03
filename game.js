@@ -297,9 +297,8 @@ function openShop() {
             .setOrigin(0.5)
             .setScale(0.03)
             .setInteractive()
-            .on('pointerdown', () => animateSkinPurchase.call(this, 'backgrounds', background.id, buttonSprite));
+            .on('pointerdown', () => purchaseSkin.call(this, 'backgrounds', background.id, buttonSprite));
         shopContainer.add(buttonSprite);
-
         if (!isPurchased) {
             const priceText = this.add.text(buttonX, buttonY + 55, `${background.price}`, { fontSize: '14px', fill: '#FFFFFF' })
                 .setOrigin(0.5);
@@ -317,9 +316,8 @@ function openShop() {
             .setOrigin(0.5)
             .setScale(0.035)
             .setInteractive()
-            .on('pointerdown', () => animateSkinPurchase.call(this, 'cans', can.id, buttonSprite));
+            .on('pointerdown', () => purchaseSkin.call(this, 'cans', can.id, buttonSprite));
         shopContainer.add(buttonSprite);
-
         if (!isPurchased) {
             const priceText = this.add.text(buttonX, buttonY + 55, `${can.price}`, { fontSize: '14px', fill: '#FFFFFF' })
                 .setOrigin(0.5);
@@ -327,6 +325,7 @@ function openShop() {
         }
     });
 }
+
 
 function animateSkinPurchase(type, skinId, buttonSprite) {
     this.children.bringToTop(buttonSprite);
@@ -343,8 +342,6 @@ function animateSkinPurchase(type, skinId, buttonSprite) {
         duration: 1000,
         onComplete: () => {
             buttonSprite.setTexture(skinId);
-
-            // Эффект частиц
             for (let i = 0; i < 50; i++) {
                 const particleText = this.add.text(buttonSprite.x, buttonSprite.y, '*', {
                     font: '30px Pangolin',
@@ -363,13 +360,14 @@ function animateSkinPurchase(type, skinId, buttonSprite) {
                 });
             }
             this.time.delayedCall(500, () => {
-                purchaseSkin.call(this, type, skinId);
+                applySkin.call(this, type, skinId);
+                navigateToSection.call(this, 'Кликер');
             });
         }
     });
 }
 
-function purchaseSkin(type, skinId) {
+function purchaseSkin(type, skinId, buttonSprite) {
     if (!skins[type]) {
         console.error(`Invalid type: ${type}`);
         return;
@@ -389,8 +387,7 @@ function purchaseSkin(type, skinId) {
         beercoins -= selectedSkin.price;
         this.beercoinsCountText.setText(`Beercoins: ${beercoins}`);
         purchasedSkins[type].push(skinId);
-        applySkin.call(this, type, skinId);
-        navigateToSection.call(this, 'Кликер');
+        animateSkinPurchase.call(this, type, skinId, buttonSprite);
     } else {
         console.log('Недостаточно средств!');
         createParticle.call(this, 175, 125, "no coins");
