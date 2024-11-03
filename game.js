@@ -138,12 +138,12 @@ function create() {
             username = Telegram.WebApp.initDataUnsafe.user.username;
             firstName = Telegram.WebApp.initDataUnsafe.user.first_name;
             lastName = Telegram.WebApp.initDataUnsafe.user.last_name;
-         
+
             loadPlayerData.call(this, userId, (isNewPlayer) => {
                 if (isNewPlayer) {
                     savePlayerData(userId, username, firstName, lastName);
                 }
-            
+
             });
         }
     document.addEventListener('visibilitychange', () => {
@@ -151,7 +151,7 @@ function create() {
             savePlayerData.call(this, userId, username, firstName, lastName);
         }
     });
-    window.addEventListener('pagehide', () => {
+    window.addEventListener('beforeunload', () => {
         savePlayerData(
             Telegram.WebApp.initDataUnsafe.user.id,
             Telegram.WebApp.initDataUnsafe.user.username,
@@ -175,7 +175,7 @@ function create() {
 
     this.multiplierText = this.add.text(10, 670, `Множитель: x${multiplier}`, { font: '18px Pangolin', fill: '#000' });
     this.time.addEvent({ delay: 1000, callback: checkMultiplierIncrease, callbackScope: this, loop: true });
-    
+
     this.can.on('pointerdown', (pointer) => {
         this.can.scaleY = 0.145;
         this.can.scaleX = 0.155;
@@ -221,7 +221,7 @@ function collectBeercoin(x, y) {
 }
 
 function checkMultiplierIncrease() {
-    if (totalTapTime >= multiplier * 600 * 1000) {
+    if (totalTapTime >= multiplier * 180 * 1000) {
         multiplier++;
         totalTapTime = 0;
         this.multiplierText.setText(`Множитель: x${multiplier}`);
@@ -282,29 +282,22 @@ function openShop() {
     hideMainUI.call(this);
     if (shopContainer) shopContainer.destroy(true);
     shopContainer = this.add.container(0, 0);
-
     const shopBackground = this.add.graphics();
     shopBackground.fillStyle(0x000000, 0.7);
     shopBackground.fillRect(0, 0, 400, 700);
     shopContainer.add(shopBackground);
-
-
-
     skins.backgrounds.forEach((background, index) => {
         const col = Math.floor(index / 5);
         const row = index % 5;
-
         const buttonX = 55 + col * 100;
         const buttonY = 70 + row * 120;
-
         const isPurchased = purchasedSkins.backgrounds.includes(background.id);
         const spriteKey = isPurchased ? background.id : 'background';
-
         const buttonSprite = this.add.image(buttonX, buttonY, spriteKey)
             .setOrigin(0.5)
             .setScale(0.03)
             .setInteractive()
-            .on('pointerdown', () => purchaseSkin.call(this, 'backgrounds', background.id));
+            .on('pointerdown', () => animateSkinPurchase.call(this, 'backgrounds', background.id, buttonSprite));
         shopContainer.add(buttonSprite);
 
         if (!isPurchased) {
@@ -313,27 +306,66 @@ function openShop() {
             shopContainer.add(priceText);
         }
     });
-
     skins.cans.forEach((can, index) => {
         const col = Math.floor(index / 5);
         const row = index % 5;
         const buttonX = 250 + col * 100;
         const buttonY = 70 + row * 130;
-
         const isPurchased = purchasedSkins.cans.includes(can.id);
         const spriteKey = isPurchased ? can.id : 'can';
-
         const buttonSprite = this.add.image(buttonX, buttonY, spriteKey)
             .setOrigin(0.5)
             .setScale(0.035)
             .setInteractive()
-            .on('pointerdown', () => purchaseSkin.call(this, 'cans', can.id));
+            .on('pointerdown', () => animateSkinPurchase.call(this, 'cans', can.id, buttonSprite));
         shopContainer.add(buttonSprite);
+
         if (!isPurchased) {
-                    const priceText = this.add.text(buttonX, buttonY + 55, `${can.price}`, { fontSize: '14px', fill: '#FFFFFF' })
-                        .setOrigin(0.5);
-                    shopContainer.add(priceText);
-                }
+            const priceText = this.add.text(buttonX, buttonY + 55, `${can.price}`, { fontSize: '14px', fill: '#FFFFFF' })
+                .setOrigin(0.5);
+            shopContainer.add(priceText);
+        }
+    });
+}
+
+function animateSkinPurchase(type, skinId, buttonSprite) {
+    this.children.bringToTop(buttonSprite);
+    shopContainer.list.forEach(element => {
+        if (element !== buttonSprite) {
+            element.setVisible(false);
+        }
+    });
+    this.tweens.add({
+        targets: buttonSprite,
+        x: 200,
+        y: 400,
+        scale: 0.15,
+        duration: 1000,
+        onComplete: () => {
+            buttonSprite.setTexture(skinId);
+
+            // Эффект частиц
+            for (let i = 0; i < 50; i++) {
+                const particleText = this.add.text(buttonSprite.x, buttonSprite.y, '*', {
+                    font: '30px Pangolin',
+                    color: '#ff0000'
+                });
+                this.tweens.add({
+                    targets: particleText,
+                    x: buttonSprite.x + Phaser.Math.Between(-150, 150),
+                    y: buttonSprite.y + Phaser.Math.Between(-150, 150),
+                    alpha: 0,
+                    scale: 0.5,
+                    duration: 500,
+                    onComplete: () => {
+                        particleText.destroy();
+                    }
+                });
+            }
+            this.time.delayedCall(500, () => {
+                purchaseSkin.call(this, type, skinId);
+            });
+        }
     });
 }
 
@@ -342,32 +374,23 @@ function purchaseSkin(type, skinId) {
         console.error(`Invalid type: ${type}`);
         return;
     }
-
     const selectedSkin = skins[type].find((skin) => skin.id === skinId);
-
     if (!selectedSkin) {
         console.error(`Skin with ID ${skinId} not found for type ${type}`);
         return;
     }
     if (purchasedSkins[type].includes(skinId)) {
-            applySkin.call(this, type, skinId);
-            showMainUI.call(this);
-            if (shopContainer) shopContainer.destroy(true);
-            return;
-        }
-
+        applySkin.call(this, type, skinId);
+        showMainUI.call(this);
+        if (shopContainer) shopContainer.destroy(true);
+        return;
+    }
     if (beercoins >= selectedSkin.price) {
         beercoins -= selectedSkin.price;
         this.beercoinsCountText.setText(`Beercoins: ${beercoins}`);
         purchasedSkins[type].push(skinId);
-        openShop.call(this);
         applySkin.call(this, type, skinId);
-        savePlayerData(Telegram.WebApp.initDataUnsafe.user.id, 
-                       Telegram.WebApp.initDataUnsafe.user.username,
-                       Telegram.WebApp.initDataUnsafe.user.first_name, 
-                       Telegram.WebApp.initDataUnsafe.user.last_name);
         navigateToSection.call(this, 'Кликер');
-        
     } else {
         console.log('Недостаточно средств!');
         createParticle.call(this, 175, 125, "no coins");
@@ -382,6 +405,10 @@ function applySkin(type, skinId) {
         this.can.setTexture(skinId);
         currentCanSkin = skinId;
     }
+    savePlayerData(Telegram.WebApp.initDataUnsafe.user.id,
+                   Telegram.WebApp.initDataUnsafe.user.username,
+                   Telegram.WebApp.initDataUnsafe.user.first_name,
+                   Telegram.WebApp.initDataUnsafe.user.last_name);
 }
 
 function createBottomMenu() {
