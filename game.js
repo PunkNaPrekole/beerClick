@@ -151,7 +151,7 @@ function create() {
             savePlayerData.call(this, userId, username, firstName, lastName);
         }
     });
-    window.addEventListener('beforeunload', () => {
+    window.addEventListener('pagehide', () => {
         savePlayerData(
             Telegram.WebApp.initDataUnsafe.user.id,
             Telegram.WebApp.initDataUnsafe.user.username,
